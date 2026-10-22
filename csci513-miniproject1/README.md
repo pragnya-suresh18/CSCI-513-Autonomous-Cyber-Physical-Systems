@@ -1,6 +1,11 @@
 Mini-Project 1: Adaptive Cruise Control in CARLA
 =================================================
 
+**Team notes:** See [`HANDOFF.md`](HANDOFF.md) for the Discovery/CARLA run recipe
+and [`results/eval_summary.md`](results/eval_summary.md) for the official
+15-scenario evaluator scores (all 1.0 as of 2026-10-21). Submit only
+`mp1_controller/controller.py`.
+
 ## Overview
 
 In this homework, we will design an adaptive cruise control (ACC) system. An ego car (host car) equipped with ACC typically has a sensor, such as radar, that estimates the distance to the vehicle in front (lead car) of the same lane.

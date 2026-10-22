@@ -10,7 +10,7 @@ From: carlasim/carla:0.9.15
     CSCI513.
 
 %setup
-  curl -C - -SL https://tiny.carla.org/additional-maps-0-9-15-linux -o AdditionalMaps_0.9.15.tar.gz
+  curl -C - -SL https://downloads.carlasim.com/Linux/AdditionalMaps_0.9.15.tar.gz -o AdditionalMaps_0.9.15.tar.gz
 
 %files
   AdditionalMaps_0.9.15.tar.gz /scif/data/additionalmaps.tar.gz
