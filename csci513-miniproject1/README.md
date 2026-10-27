@@ -3,7 +3,7 @@ Mini-Project 1: Adaptive Cruise Control in CARLA
 
 **Team notes:** See [`HANDOFF.md`](HANDOFF.md) for the Discovery/CARLA run recipe
 and [`results/eval_summary.md`](results/eval_summary.md) for the official
-15-scenario evaluator scores (all 1.0 as of 2026-10-21). Submit only
+15-scenario evaluator scores (all 1.0, re-validated 2026-10-25). Submit only
 `mp1_controller/controller.py`.
 
 ## Overview

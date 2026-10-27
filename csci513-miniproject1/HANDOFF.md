@@ -2,12 +2,19 @@
 
 ## Status (read this first)
 
-CARLA validation on USC Discovery is **done**.
+**Update 2026-10-25 (An):** re-validated on a local CARLA 0.9.15 (RTX 4070).
+The 2026-10-21 controller passed most runs but with thin margins: it failed
+`reachTargetWhenNotFollowing` on `scenario1_0` once, came within 9 m of a
+stopped lead, and collided with 0.2 s of extra actuation delay. `controller.py`
+now has a CRUISING approach speed limit and low-speed coasting (FOLLOWING gap
+control unchanged). Result: **1.0 on all five** for both ego blueprints
+(`mkz_2017`, `mkz_2020`), worst min distance 17.2 m, worst reach wait 4.6 s of 6.
+Details, margins and a robustness sweep: [`results/eval_summary.md`](results/eval_summary.md).
+
+Earlier status (2026-10-21, Discovery):
 
 - All **15** scenarios ran without errors.
 - Official evaluator: **1.0** on all five requirements.
-- Summary saved in [`results/eval_summary.md`](results/eval_summary.md).
-- No constant tuning was required after the CARLA run.
 
 **Submit only** `mp1_controller/controller.py`.
 
@@ -23,8 +30,12 @@ If you want to reproduce the run yourself, follow the Discovery recipe below
 - PI cruise-speed tracking with strong pull-away for `|v - v_des| < 2` within 6 s
 - IDM-style following (standstill gap + time headway + closing foresight)
 - lead-speed estimate from successive distance samples
+- CRUISING approach speed limit: hold v_des as long as it is safe, then brake
+  late and firmly into FOLLOWING range (keeps `reachTargetWhenNotFollowing`)
 - safety overlay (TTC + stopping-distance braking)
 - creep acceleration so ego does not stay stopped while the lead is moving
+- coast instead of brake at low speed behind a moving lead (CARLA brakes lock
+  the car to a stop below ~8 m/s)
 - tunable gains/thresholds as named module-level constants
 
 Do **not** rename `Controller`, change `__init__` / `run_step` signatures, or
@@ -68,6 +79,8 @@ setup differs:
 | `KP_SPEED`, `KI_SPEED` | cruise speed acquisition |
 | `CREEP_ACCEL` | recovery if ego stops while lead moves |
 | `HARD_BRAKE_DISTANCE` | last-resort hard brake range |
+| `APPROACH_GAP`, `APPROACH_DECEL`, `STOP_GAP`, `EMERGENCY_DECEL` | CRUISING approach: larger gap / lower decel → earlier, safer braking; opposite → stays in the v_des band longer |
+| `COAST_SPEED`, `COAST_DECEL`, `COAST_GAP` | low-speed coasting instead of braking behind a moving lead |
 
 ## Quick local checks (no CARLA, optional)
 
@@ -223,16 +236,16 @@ exit   # leave salloc / GPU node
 
 | Failure | Likely adjustment |
 |---|---|
-| `safeFollowing` | raise `STANDSTILL_GAP` / `TIME_HEADWAY`; lower `ASSUMED_MAX_DECEL`; raise `KV_REL` |
+| `safeFollowing` | raise `STANDSTILL_GAP` / `TIME_HEADWAY`; lower `ASSUMED_MAX_DECEL`; raise `KV_REL`; on the approach raise `APPROACH_GAP` / `STOP_GAP` |
 | `forwardProgress` | avoid prolonged hard brake near zero (already gated) |
-| `dontStopUnlessLeadStops` | raise `CREEP_ACCEL`; slightly lower `STANDSTILL_GAP` |
+| `dontStopUnlessLeadStops` | raise `CREEP_ACCEL`; slightly lower `STANDSTILL_GAP`; raise `COAST_SPEED` |
 | `notFollowWhenFarAway` | keep `CRUISE_DISTANCE = 40` |
-| `reachTargetWhenNotFollowing` | raise `KP_SPEED` / pull-away; delay soft braking |
+| `reachTargetWhenNotFollowing` | raise `KP_SPEED` / pull-away; raise `APPROACH_DECEL` or lower `APPROACH_GAP` so the approach brakes later |
 
 ## Acceptance checklist
 
 - [x] All 15 scenarios ran without an exception (Discovery, 2026-10-21)
 - [x] Evaluator run on fresh logs from this controller
 - [x] All five aggregate fractions = 1.0 (see `results/eval_summary.md`)
-- [x] No further parameter change after that successful full run
+- [x] Re-validated 2026-10-25 on local CARLA after the approach/coasting change: 1.0 on all five, both `mkz_2017` and `mkz_2020`
 - [ ] Course submission of `mp1_controller/controller.py` (when due)
